@@ -1,0 +1,8 @@
+{"pepe":"1","papo":"gato"}
+{"pepe":"1","papo":"gato"}
+"1"
+"1"
+{"data":{"pepe":"1","papo":"gato"},"timestamp":"2023-06-28 14:39:02"}
+{"timestamp":"2023-06-28 14:39:40","data":{"pepe":"1","papo":"gato"}}
+{"timestamp":"2023-06-28 14:40:14","data":{"pepe":"1","papo":"gato"}}
+{"timestamp":"2023-06-28 14:40:30","data":{"pepe":"1","papo":"gato"}}
