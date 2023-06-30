@@ -37,6 +37,7 @@ app.get('/append', (req, res) => {
 
 app.get('/dump', (req, res) => {
   fs.readFile('data.txt', 'utf8', (err, data) => {
+    data = "<pre>" + data + "</pre>";
     if (err) {
       console.error(err);
       return res.status(500).send('Error reading file');

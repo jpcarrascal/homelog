@@ -5,7 +5,7 @@
 #include "OledDisplay.h"
 #include "SystemTickCounter.h"
 
-#define AZURE_FUNCTION_URL "https://homelog-jp.azurewebsites.net/"
+#define CLOUD_APP_URL "https://homelog-jp.azurewebsites.net/"
 #include "http_client.h"
 
 #define LANGUAGES_COUNT 9
@@ -27,7 +27,7 @@ enum STATUS
   SelectLanguage
 };
 
-static char azureFunctionUri[192];
+static char webAppUri[192];
 
 // The timeout for retrieving the result
 static uint64_t result_timeout_ms;
@@ -76,46 +76,25 @@ static int HttpTriggerTranslator(const char *content)
     return -1;
   }
 
-  sprintf(azureFunctionUri, "%sappend?%s", (char *)AZURE_FUNCTION_URL, content);
-  HTTPClient client = HTTPClient(HTTP_GET, azureFunctionUri);
-  client.set_header("append", "pepe=wf&papo=df");
+  sprintf(webAppUri, "%sappend?%s", (char *)CLOUD_APP_URL, content);
+  HTTPClient client = HTTPClient(HTTP_GET, webAppUri);
+  client.set_header("append", content);
+  Screen.print(2, "Sending...");
   const Http_Response *response = client.send();
 
   if (response != NULL && response->status_code == 200)
   {
+    Screen.print(2, "Success!");
     return 0;
   }
   else
   {
+    Screen.print(2, "Error :(");
     return -1;
   }
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Callback functions
-static void ResultMessageCallback(const char *text, int length)
-{
-  Serial.printf("Enter message callback, text: %s\r\n", text);
-  if (status != Uploaded)
-  {
-    return;
-  }
-
-  EnterIdleState();
-  if (text == NULL)
-  {
-    Screen.print(1, ERROR_INFO);
-    return;
-  }
-
-  char temp[33];
-  int end = min(length, sizeof(temp) - 1);
-  memcpy(temp, text, end);
-  temp[end] = '\0';
-  Screen.print(1, "Translation: ");
-  Screen.print(2, temp, true);
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Actions
@@ -154,9 +133,9 @@ static void DoUploader()
 void setup()
 {
   Screen.init();
-  Screen.print(0, "DevKitTranslator");
+  Screen.print(0, "HomeLogger");
 
-  if (strlen(AZURE_FUNCTION_URL) == 0)
+  if (strlen(CLOUD_APP_URL) == 0)
   {
     Screen.print(2, "No Azure Func");
     return;
