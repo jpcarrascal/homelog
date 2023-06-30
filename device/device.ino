@@ -3,19 +3,20 @@
 // To get started please visit https://microsoft.github.io/azure-iot-developer-kit/docs/projects/devkit-translator/?utm_source=ArduinoExtension&utm_medium=ReleaseNote&utm_campaign=VSCode
 #include "AZ3166WiFi.h"
 #include "OledDisplay.h"
-#include "SystemTickCounter.h"
+#include "HTS221Sensor.h"
 
 #define CLOUD_APP_URL "https://homelog-jp.azurewebsites.net/"
 #include "http_client.h"
 
-#define LANGUAGES_COUNT 9
-#define MAX_RECORD_DURATION 1.5
-#define MAX_UPLOAD_SIZE (64 * 1024)
 #define LOOP_DELAY 10000
-#define PULL_TIMEOUT 30000
 
 #define APP_VERSION "ver=2.0"
 #define ERROR_INFO "Ouch."
+
+DevI2C *i2c;
+HTS221Sensor *sensor;
+float humidity = 0;
+float temperature = 0;
 
 enum STATUS
 {
@@ -28,6 +29,7 @@ enum STATUS
 };
 
 static char webAppUri[192];
+static char sensorString[128];
 
 // The timeout for retrieving the result
 static uint64_t result_timeout_ms;
@@ -81,7 +83,6 @@ static int HttpTriggerTranslator(const char *content)
   client.set_header("append", content);
   Screen.print(2, "Sending...");
   const Http_Response *response = client.send();
-
   if (response != NULL && response->status_code == 200)
   {
     Screen.print(2, "Success!");
@@ -90,6 +91,7 @@ static int HttpTriggerTranslator(const char *content)
   else
   {
     Screen.print(2, "Error :(");
+    Serial.println(response->status_message);
     return -1;
   }
 }
@@ -114,16 +116,6 @@ static void DoIdle()
     Screen.print(0, "Recording...");
     Screen.print(1, "Release to send\r\nMax duraion: \r\n1.5 sec");
     status = Recording;
-  }
-}
-
-static void DoUploader()
-{
-  if ((int)(SystemTickCounterRead() - result_timeout_ms) >= PULL_TIMEOUT)
-  {
-    // Timeout
-    EnterIdleState();
-    Screen.print(1, "Client Timeout");
   }
 }
 
@@ -157,6 +149,10 @@ void setup()
     return;
   }
 
+  i2c = new DevI2C(D14, D15);
+  sensor = new HTS221Sensor(*i2c);
+  // init the sensor
+  sensor -> init(NULL);
 
 
   Screen.print(1, "HomeLog Ready...");
@@ -173,11 +169,15 @@ void loop()
       break;
 
     case Uploaded:
-      DoUploader();
+
       break;
 
     }
   }
-  HttpTriggerTranslator("pepe=wf&papo=df");
+  sensor -> getHumidity(&humidity);
+  sensor -> getTemperature(&temperature);
+  sprintf(sensorString, "temp=%f&humid=%f", temperature, humidity);
+  Serial.println(sensorString);
+  HttpTriggerTranslator("pepe=xx&papo=yy");
   delay(LOOP_DELAY);
 }

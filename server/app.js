@@ -14,7 +14,7 @@ app.get('/append', (req, res) => {
   if (!data) {
     return res.status(400).send('No data provided');
   }
-  if(data.pepe && data.papo) {
+  if(data.temp && data.humid) {
     // Generate timestamp
     const now = moment().tz('Europe/Madrid');
     const timestamp = now.format('YYYY-MM-DD HH:mm:ss');
