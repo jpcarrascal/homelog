@@ -35,6 +35,19 @@ app.get('/append', (req, res) => {
 
 });
 
+app.get('/dump', (req, res) => {
+  fs.readFile('data.txt', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Error reading file');
+    }
+
+    console.log('File contents:', data);
+    res.send(data);
+  });
+
+});
+
 var port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log('Server listening on port 3000');
